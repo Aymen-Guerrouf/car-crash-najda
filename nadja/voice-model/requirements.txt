@@ -1,0 +1,4 @@
+# tools in this folder only (the Django backend does not need these)
+numpy==1.26.4
+edge-tts==7.3.1
+soundfile==0.14.0

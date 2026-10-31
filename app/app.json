@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "Nadjda",
+    "slug": "app",
+    "scheme": "nadjda",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F4F0EF"
+    },
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Your position is sent to emergency services only when you trigger an alert."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#F4F0EF",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Choose a profile picture for your medical card and a photo of the accident scene.",
+          "cameraPermission": "Take a photo of the accident scene to help the emergency team."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "The microphone lets you answer yes or no by voice when you cannot use your hands."
+        }
+      ],
+      "expo-asset"
+    ]
+  }
+}

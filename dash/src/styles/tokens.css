@@ -1,0 +1,45 @@
+/* Same palette as the mobile app (Figma "Najdaa"): warm light background, black pill actions, red for urgency. */
+:root {
+  --bg: #F4F0EF;
+  --surface: #FFFFFF;
+  --surface-2: #EAE5E3;
+  --surface-3: #DCD5D2;
+  --border: #E2DBD8;
+  --panel: #F3EFEE;           /* queue and map backdrop */
+  --line: #ECE6E4;            /* hairlines inside a panel */
+  --ink: #111111;
+  --text: #111111;
+  --text-muted: #55504E;
+  --text-faint: #8C8683;
+  --info: #2457E6;            /* links, SMS badge, selection ring, route */
+  --ai: #6D28D9;              /* AI labels only */
+
+  --triage-red: #D0021B;
+  --on-red: #FFFFFF;
+  --triage-yellow: #F4B400;
+  --on-yellow: #1A1A1A;       /* NEVER white on yellow */
+  --triage-green: #16804A;
+  --on-green: #FFFFFF;
+  --triage-unknown: #6B7280;
+  --on-unknown: #FFFFFF;
+
+  --red-soft: rgba(208, 2, 27, 0.08);
+  --green-soft: #DBEFE3;
+  --yellow-soft: rgba(244, 180, 0, 0.18);
+  --info-soft: rgba(36, 87, 230, 0.1);
+
+  --radius-xl: 16px;
+  --radius-lg: 14px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+
+  --shadow-card: none; /* flat, as in the design: borders and spacing do the separating */
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+}

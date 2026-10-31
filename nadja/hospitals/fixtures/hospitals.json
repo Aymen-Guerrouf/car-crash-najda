@@ -1,0 +1,68 @@
+[
+  {"model": "hospitals.hospital", "pk": 1, "fields": {
+    "name": "CHU Hassani Abdelkader - Sidi Bel Abbès", "short_name": "CHU SBA",
+    "lat": 35.1903, "lng": -0.6405, "phone": "+213048541000",
+    "capabilities": ["TRAUMA", "NEURO", "THORACIC", "GENERAL_SURGERY", "ORTHO", "ICU", "BURNS"],
+    "beds_available": 4, "active": true}},
+  {"model": "hospitals.hospital", "pk": 2, "fields": {
+    "name": "EHS Mère-Enfant - Sidi Bel Abbès", "short_name": "EHS MERE-ENF",
+    "lat": 35.2012, "lng": -0.6258, "phone": "+213048542000",
+    "capabilities": ["PEDIATRIC", "GENERAL_SURGERY", "ICU"],
+    "beds_available": 3, "active": true}},
+  {"model": "hospitals.hospital", "pk": 3, "fields": {
+    "name": "EPH Ahmed Medeghri - Sidi Bel Abbès", "short_name": "EPH MEDEGHRI",
+    "lat": 35.1855, "lng": -0.6192, "phone": "+213048543000",
+    "capabilities": ["GENERAL_SURGERY", "ORTHO"],
+    "beds_available": 6, "active": true}},
+  {"model": "hospitals.hospital", "pk": 4, "fields": {
+    "name": "EPH Telagh", "short_name": "EPH TELAGH",
+    "lat": 34.8240, "lng": -0.5620, "phone": "+213048544000",
+    "capabilities": ["GENERAL_SURGERY"],
+    "beds_available": 2, "active": true}},
+  {"model": "hospitals.hospital", "pk": 5, "fields": {
+    "name": "EPH Sfisef", "short_name": "EPH SFISEF",
+    "lat": 35.2300, "lng": -0.2160, "phone": "+213048545000",
+    "capabilities": ["GENERAL_SURGERY", "ORTHO"],
+    "beds_available": 0, "active": true}},
+
+  {"model": "hospitals.hospital", "pk": 6, "fields": {
+    "name": "CHU Mustapha Pacha - Alger", "short_name": "CHU MUSTAPHA",
+    "lat": 36.7625, "lng": 3.0535, "phone": "+213210000006",
+    "capabilities": ["TRAUMA", "NEURO", "THORACIC", "GENERAL_SURGERY", "ORTHO", "ICU", "BURNS"],
+    "beds_available": 8, "active": true}},
+  {"model": "hospitals.hospital", "pk": 7, "fields": {
+    "name": "CHU Lamine Debaghine (Bab El Oued) - Alger", "short_name": "CHU B.E.OUED",
+    "lat": 36.7893, "lng": 3.0478, "phone": "+213210000007",
+    "capabilities": ["TRAUMA", "GENERAL_SURGERY", "ORTHO", "ICU"],
+    "beds_available": 5, "active": true}},
+  {"model": "hospitals.hospital", "pk": 8, "fields": {
+    "name": "CHU Nafissa Hamoud (ex Parnet) - Hussein Dey", "short_name": "CHU HAMOUD",
+    "lat": 36.7450, "lng": 3.0990, "phone": "+213210000008",
+    "capabilities": ["TRAUMA", "GENERAL_SURGERY", "ORTHO", "ICU"],
+    "beds_available": 4, "active": true}},
+  {"model": "hospitals.hospital", "pk": 9, "fields": {
+    "name": "CHU Beni Messous - Alger", "short_name": "CHU BMESSOUS",
+    "lat": 36.7878, "lng": 2.9840, "phone": "+213210000009",
+    "capabilities": ["TRAUMA", "NEURO", "THORACIC", "GENERAL_SURGERY", "ICU", "PEDIATRIC"],
+    "beds_available": 6, "active": true}},
+  {"model": "hospitals.hospital", "pk": 10, "fields": {
+    "name": "CHU Salim Zemirli - El Harrach", "short_name": "CHU ZEMIRLI",
+    "lat": 36.7213, "lng": 3.1380, "phone": "+213210000010",
+    "capabilities": ["TRAUMA", "ORTHO", "GENERAL_SURGERY", "ICU", "BURNS"],
+    "beds_available": 3, "active": true}},
+  {"model": "hospitals.hospital", "pk": 11, "fields": {
+    "name": "Hôpital Central de l'Armée (Aïn Naâdja) - Alger", "short_name": "HCA A.NAADJA",
+    "lat": 36.7150, "lng": 3.0700, "phone": "+213210000011",
+    "capabilities": ["TRAUMA", "NEURO", "THORACIC", "GENERAL_SURGERY", "ORTHO", "ICU"],
+    "beds_available": 5, "active": true}},
+  {"model": "hospitals.hospital", "pk": 12, "fields": {
+    "name": "EPH Rouiba", "short_name": "EPH ROUIBA",
+    "lat": 36.7380, "lng": 3.2800, "phone": "+213210000012",
+    "capabilities": ["GENERAL_SURGERY", "ORTHO"],
+    "beds_available": 4, "active": true}},
+  {"model": "hospitals.hospital", "pk": 13, "fields": {
+    "name": "EPH Zéralda", "short_name": "EPH ZERALDA",
+    "lat": 36.7110, "lng": 2.8420, "phone": "+213210000013",
+    "capabilities": ["GENERAL_SURGERY"],
+    "beds_available": 2, "active": true}}
+]

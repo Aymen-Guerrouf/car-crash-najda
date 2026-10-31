@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nadjda voice recorder</title>
+<style>
+  :root { --bg:#0e1116; --surface:#171b22; --border:#2e3440; --text:#fff; --muted:#a7afbc; --green:#16804a; --red:#d7263d; --blue:#3b82f6; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:17px/1.4 system-ui, sans-serif; }
+  main { max-width:520px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:8px 0 4px; }
+  p, label { color:var(--muted); }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; margin:12px 0; }
+  select, input[type=text] { width:100%; padding:12px; font-size:17px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); margin:6px 0 12px; }
+  button { width:100%; min-height:56px; border:0; border-radius:12px; font-size:19px; font-weight:700; color:#fff; background:var(--blue); margin:6px 0; }
+  button.rec { background:var(--red); } button.ok { background:var(--green); } button.ghost { background:var(--border); }
+  button:disabled { opacity:.4; }
+  .word { font-size:44px; font-weight:800; text-align:center; margin:12px 0; direction:auto; }
+  .hint { text-align:center; min-height:24px; }
+  .bar { height:14px; border-radius:7px; background:var(--border); overflow:hidden; margin:10px 0; }
+  .bar > div { height:100%; width:0; background:var(--green); transition:width .08s; }
+  .progress { display:flex; gap:8px; flex-wrap:wrap; font-size:14px; color:var(--muted); }
+  .hidden { display:none; }
+  .warn { color:#f4b400; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Nadjda — voice recorder</h1>
+  <p>3-4 minutes. You will say a few short words (yes / no / other sounds) so our emergency app can understand answers offline.</p>
+
+  <section id="setup" class="card">
+    <label><input type="checkbox" id="consent"> I agree that my voice clips are used only to train the Nadjda yes/no model. No name is stored, only a random id.</label>
+    <label for="env">Where are you?</label>
+    <select id="env"><option value="quiet">Quiet room</option><option value="street">Street / outside</option><option value="car">In a car</option><option value="noisy">Noisy place</option></select>
+    <label for="dist">Phone distance</label>
+    <select id="dist"><option value="close">Close (10-20 cm)</option><option value="far">At arm's length</option></select>
+    <label for="dialect">Your accent (optional)</label>
+    <input type="text" id="dialect" placeholder="e.g. Oranais, Algérois, Kabyle..." maxlength="40">
+    <button id="start" disabled>Start</button>
+    <p id="micmsg" class="warn"></p>
+  </section>
+
+  <section id="session" class="card hidden">
+    <div class="progress" id="progress"></div>
+    <div class="word" id="word"></div>
+    <div class="hint" id="hint"></div>
+    <div class="bar"><div id="level"></div></div>
+    <button id="record" class="rec">● Record</button>
+    <div id="review" class="hidden">
+      <button id="play" class="ghost">▶ Play</button>
+      <button id="keep" class="ok">Keep ✓</button>
+      <button id="redo" class="ghost">Redo ↺</button>
+    </div>
+  </section>
+
+  <section id="done" class="card hidden">
+    <h1>Thank you! 🙏</h1>
+    <p>Download your file and send it to the team (WhatsApp / email / Drive).</p>
+    <button id="download" class="ok">Download my recordings (.zip)</button>
+    <p id="summary"></p>
+  </section>
+</main>
+
+<script type="module">
+import { SAMPLE_RATE, CLIP_SECONDS, resample, cropLoudest, encodeWav16, rms, peak } from "./wav.js";
+import { makeZip } from "./zip.js";
+
+// ---- what to record (edit these lists to change the plan) ------------------------------------------
+const YES = ["iyeh", "ih", "wah", "oui", "ouais", "نعم", "إيه", "wa"];
+const NO = ["la", "lala", "non", "لا", "لالا", "ماشي"];
+const WORDS = ["bonjour", "merci", "طاولة", "سيارة", "allô", "demain", "كتاب", "voiture", "maison", "ماء"];
+const PER_CLASS = { yes: 10, no: 10, silence: 3, noise: 3, word: 9 };
+const TAKE_SECONDS = 2.0;               // we record 2 s and keep the loudest 1 s
+
+const plan = [];
+const addCycle = (cls, list, n, how) => { for (let i = 0; i < n; i++) plan.push({ cls, text: list[i % list.length], hint: how }); };
+addCycle("yes", YES, PER_CLASS.yes, 'Say it naturally, as if answering "Are you breathing?"');
+addCycle("no", NO, PER_CLASS.no, 'Say it naturally, as if answering "Can you walk?"');
+for (let i = 0; i < PER_CLASS.silence; i++) plan.push({ cls: "other", sub: "silence", text: "(stay silent)", hint: "Do not speak for 2 seconds" });
+for (let i = 0; i < PER_CLASS.noise; i++) plan.push({ cls: "other", sub: "noise", text: ["(cough)", "(breathe loudly)", "(hum 'mmm')"][i % 3], hint: "Make this sound" });
+addCycle("other", WORDS, PER_CLASS.word, "Say this word");
+plan.forEach((p, i) => { p.sub = p.sub || (p.cls === "other" ? "word" : p.cls); });
+// shuffle so yes/no do not come in long blocks (deterministic per session is not needed)
+for (let i = plan.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [plan[i], plan[j]] = [plan[j], plan[i]]; }
+
+const $ = (id) => document.getElementById(id);
+const speakerId = Array.from(crypto.getRandomValues(new Uint8Array(4))).map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+const kept = [];                       // {name, data, prompt, cls, sub}
+let index = 0, pending = null, stream = null, ctx = null;
+
+$("consent").onchange = () => { $("start").disabled = !$("consent").checked; };
+$("start").onclick = async () => {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+  } catch (e) {
+    $("micmsg").textContent = "Microphone blocked. Allow it in the browser, and open this page over https:// or localhost.";
+    return;
+  }
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  $("setup").classList.add("hidden"); $("session").classList.remove("hidden");
+  show();
+};
+
+function show() {
+  if (index >= plan.length) return finish();
+  const p = plan[index];
+  $("word").textContent = p.text; $("hint").textContent = p.hint;
+  const counts = { yes: 0, no: 0, other: 0 }; kept.forEach((k) => counts[k.cls]++);
+  $("progress").textContent = `${index + 1} / ${plan.length}   ·   yes ${counts.yes}/${PER_CLASS.yes}   no ${counts.no}/${PER_CLASS.no}   other ${counts.other}`;
+  $("record").classList.remove("hidden"); $("record").disabled = false; $("review").classList.add("hidden"); $("keep").classList.remove("hidden"); $("level").style.width = "0";
+}
+
+async function reacquireMic() {
+  // Android Chrome mutes/ends the mic when another app or the screen lock takes it: ask for a fresh stream
+  stream.getTracks().forEach((t) => t.stop());
+  stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+}
+
+async function capture(seconds) {
+  await ctx.resume();
+  const source = ctx.createMediaStreamSource(stream);
+  const node = ctx.createScriptProcessor(4096, 1, 1);
+  const chunks = [];
+  node.onaudioprocess = (e) => {
+    const data = new Float32Array(e.inputBuffer.getChannelData(0));
+    chunks.push(data); $("level").style.width = Math.min(100, rms(data) * 500) + "%";
+  };
+  source.connect(node); node.connect(ctx.destination);   // destination is muted below through zero gain
+  await new Promise((r) => setTimeout(r, seconds * 1000));
+  source.disconnect(); node.disconnect();
+  const total = chunks.reduce((n, c) => n + c.length, 0), out = new Float32Array(total); let pos = 0;
+  chunks.forEach((c) => { out.set(c, pos); pos += c.length; });
+  return resample(out, ctx.sampleRate, SAMPLE_RATE);
+}
+
+$("record").onclick = async () => {
+  $("record").disabled = true; $("hint").textContent = "Recording…";
+  const take = await capture(TAKE_SECONDS);
+  const clip = cropLoudest(take, SAMPLE_RATE, CLIP_SECONDS);
+  const p = plan[index], loud = rms(clip), clipped = peak(clip) > 0.99;
+  const dead = peak(take) < 1e-6;        // exact digital silence = the microphone was muted/busy, never a real take
+  pending = { clip, wav: encodeWav16(clip, SAMPLE_RATE) };
+  let msg = "Listen, then keep or redo.";
+  if (dead) {
+    msg = "⚠ No sound was captured (microphone muted or used by another app). Close other apps, then Redo.";
+    try { await reacquireMic(); } catch (e) { msg += " (could not reopen the microphone: allow it in the browser)"; }
+  } else if (p.sub === "silence" && loud > 0.03) msg = "⚠ I can hear sound. This one must be SILENT. Redo.";
+  else if (p.sub !== "silence" && loud < 0.003) msg = "⚠ Very quiet: get closer or say it louder, then Redo.";
+  else if (clipped) msg = "⚠ Too loud / distorted: move a bit away, then Redo.";
+  $("hint").textContent = msg; $("hint").className = "hint" + (msg.startsWith("⚠") ? " warn" : "");
+  $("record").classList.add("hidden"); $("review").classList.remove("hidden");
+  $("keep").classList.toggle("hidden", dead);   // a dead take can never be kept
+};
+$("play").onclick = () => {
+  const buf = ctx.createBuffer(1, pending.clip.length, SAMPLE_RATE); buf.copyToChannel(pending.clip, 0);
+  const src = ctx.createBufferSource(); src.buffer = buf; src.connect(ctx.destination); src.start();
+};
+$("redo").onclick = show;
+$("keep").onclick = () => {
+  const p = plan[index], n = kept.filter((k) => k.cls === p.cls).length + 1;
+  kept.push({ name: `${p.cls}_${String(n).padStart(3, "0")}.wav`, data: pending.wav, prompt: p.text, cls: p.cls, sub: p.sub });
+  index++; show();
+};
+
+function finish() {
+  stream.getTracks().forEach((t) => t.stop());
+  $("session").classList.add("hidden"); $("done").classList.remove("hidden");
+  $("summary").textContent = `${kept.length} clips recorded. Speaker id: ${speakerId}`;
+  const meta = {
+    speaker_id: speakerId, env: $("env").value, distance: $("dist").value, accent: $("dialect").value.trim(),
+    device: navigator.userAgent, sample_rate: SAMPLE_RATE, clip_seconds: CLIP_SECONDS, created: new Date().toISOString(),
+    clips: kept.map((k) => ({ file: k.name, class: k.cls, kind: k.sub, prompt: k.prompt })),
+  };
+  const files = [...kept.map((k) => ({ name: k.name, data: k.data })),
+                 { name: "meta.json", data: new TextEncoder().encode(JSON.stringify(meta, null, 1)) }];
+  $("download").onclick = () => {
+    const url = URL.createObjectURL(new Blob([makeZip(files)], { type: "application/zip" }));
+    const a = Object.assign(document.createElement("a"), { href: url, download: `speaker_${speakerId}.zip` });
+    document.body.appendChild(a); a.click(); a.remove();
+  };
+}
+</script>
+</body>
+</html>

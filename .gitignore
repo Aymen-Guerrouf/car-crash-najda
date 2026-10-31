@@ -1,0 +1,64 @@
+# secrets: real env files stay local, the .example files are committed
+.env
+.env.*
+!.env.example
+
+# dependencies and builds
+node_modules/
+.venv/
+venv/
+dist/
+build/
+.expo/
+*.tsbuildinfo
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# local data
+*.sqlite3
+nadja/media/*
+!nadja/media/.gitkeep
+
+# os / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+
+# ---- not part of the published source (kept locally) ----
+# env files, including the .example ones (they describe real keys)
+.env.example
+**/.env.example
+
+# tests and test data
+tests/
+__tests__/
+test_*.py
+*.test.ts
+*.test.tsx
+*.test.mjs
+conftest.py
+pytest.ini
+**/test/
+dash/src/test/
+**/sms_vectors.json
+**/voice_parity_vectors.json
+app/scripts/check-*.mjs
+nadja/voice-model/tests/
+
+# planning / task notes, generated schema, leftover patch
+*.patch
+nadja/openapi.json
+nadja/Golden_Hour_Copilot_Implementation_Plan.md
+nadja/vehicle-sensor-simulation-api-task.md
+nadja/FRONTEND_HANDOFF.md
+nadja/AI_Layer_Guide.md
+dash/files/
+dash/OPEN_QUESTIONS.md
+app/AGENTS.md
